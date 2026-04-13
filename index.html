@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Process Survey Dashboard</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#ffffff;--bg2:#f5f5f3;--bg3:#eeede9;
+    --text:#1a1a18;--text2:#6b6b67;--text3:#9e9d99;
+    --border:#e2e1dc;--border2:#d0cfc9;
+    --teal:#1D9E75;--teal-bg:#E1F5EE;--teal-text:#085041;
+    --blue:#378ADD;--blue-bg:#E6F1FB;--blue-text:#0C447C;
+    --amber:#BA7517;--amber-bg:#FAEEDA;--amber-text:#633806;
+    --red:#E24B4A;--red-bg:#FCEBEB;--red-text:#A32D2D;
+    --purple-bg:#EEEDFE;--purple-text:#3C3489;
+    --radius:8px;--radius-lg:12px;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;line-height:1.5}
+
+  /* NAV */
+  .nav{background:var(--bg);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:100}
+  .nav-brand{font-size:13px;font-weight:600;color:var(--text);padding:14px 0;margin-right:28px;white-space:nowrap}
+  .nav-brand span{color:var(--text2);font-weight:400}
+  .nav-tab{padding:14px 16px;font-size:13px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+  .nav-tab:hover{color:var(--text)}
+  .nav-tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+
+  /* PAGES */
+  .page{display:none;padding:28px;max-width:1200px;margin:0 auto}
+  .page.active{display:block}
+
+  /* SECTION */
+  .section-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+  .section-title{font-size:17px;font-weight:600;color:var(--text);margin-bottom:4px}
+  .section-sub{font-size:12px;color:var(--text2);margin-bottom:20px}
+
+  /* CARDS */
+  .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px}
+  .metric-card{background:var(--bg2);border-radius:var(--radius);padding:16px;text-align:center}
+  .metric-val{font-size:28px;font-weight:600;color:var(--text)}
+  .metric-lbl{font-size:11px;color:var(--text2);margin-top:3px}
+  .metric-note{font-size:10px;color:var(--text3);margin-top:2px}
+
+  /* GRIDS */
+  .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  @media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
+
+  /* DIVIDER */
+  hr{border:none;border-top:1px solid var(--border);margin:24px 0}
+
+  /* BADGES */
+  .badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
+  .badge-p{background:var(--teal-bg);color:var(--teal-text)}
+  .badge-ta{background:var(--blue-bg);color:var(--blue-text)}
+  .badge-m{background:var(--purple-bg);color:var(--purple-text)}
+  .badge-hc{background:var(--amber-bg);color:var(--amber-text)}
+  .badge-flag{background:var(--red-bg);color:var(--red-text)}
+  .badge-ok{background:var(--teal-bg);color:var(--teal-text)}
+  .badge-warn{background:var(--amber-bg);color:var(--amber-text)}
+
+  /* SCORE BARS */
+  .score-bar-track{height:7px;background:var(--bg2);border-radius:4px;flex:1;margin:0 10px}
+  .score-bar-fill{height:7px;border-radius:4px}
+
+  /* SIGNAL ROWS */
+  .signal-row{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+  .signal-row:last-child{border-bottom:none}
+  .signal-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
+
+  /* FREQ BARS */
+  .freq-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12px}
+  .freq-label{width:82px;color:var(--text2);flex-shrink:0}
+  .freq-bar{height:14px;border-radius:3px;min-width:2px}
+
+  /* CATEGORY TABS */
+  .cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+  .cat-tab{padding:6px 14px;font-size:12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;background:var(--bg);color:var(--text2);transition:all .15s;font-weight:500}
+  .cat-tab:hover{border-color:var(--border2);color:var(--text)}
+  .cat-tab.active{background:var(--text);color:#fff;border-color:var(--text)}
+
+  /* CATEGORY CONTENT */
+  .cat-content{display:none}
+  .cat-content.active{display:block}
+
+  /* PAIN & ACTION */
+  .pa-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+  .pa-item:last-child{border-bottom:none}
+  .pa-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;margin-top:1px}
+  .pa-num-red{background:var(--red-bg);color:var(--red-text)}
+  .pa-num-green{background:var(--teal-bg);color:var(--teal-text)}
+  .pa-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+  .pa-sub{font-size:12px;color:var(--text2);line-height:1.5}
+
+  /* EVIDENCE MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--bg);border-radius:var(--radius-lg);width:90%;max-width:740px;max-height:85vh;display:flex;flex-direction:column;border:1px solid var(--border2)}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .modal-head h3{font-size:15px;font-weight:600;color:var(--text)}
+  .modal-head p{font-size:12px;color:var(--text2);margin-top:2px}
+  .modal-close{background:var(--bg2);border:none;cursor:pointer;width:28px;height:28px;border-radius:6px;font-size:16px;color:var(--text2);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .modal-close:hover{background:var(--bg3);color:var(--text)}
+  .modal-filters{padding:12px 22px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap}
+  .filter-btn{padding:4px 10px;font-size:11px;border:1px solid var(--border);border-radius:12px;cursor:pointer;background:var(--bg);color:var(--text2)}
+  .filter-btn.active{background:var(--text);color:#fff;border-color:var(--text)}
+  .modal-body{padding:16px 22px;overflow-y:auto;flex:1}
+  .ev-card{border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
+  .ev-card:last-child{margin-bottom:0}
+  .ev-meta{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+  .ev-type{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg2);color:var(--text2);font-weight:500}
+  .ev-resp{font-size:11px;font-weight:600}
+  .ev-resp-yes{color:var(--teal)}
+  .ev-resp-no{color:var(--red)}
+  .ev-resp-neutral{color:var(--amber)}
+  .ev-q{font-size:11px;color:var(--text3);margin-bottom:4px}
+  .ev-text{font-size:12px;color:var(--text);line-height:1.55;font-style:italic}
+  .ev-empty{padding:40px;text-align:center;color:var(--text3);font-size:13px}
+  .drill-btn{font-size:11px;padding:4px 10px;border:1px solid var(--border2);border-radius:6px;background:var(--bg);cursor:pointer;color:var(--blue-text);font-weight:500}
+  .drill-btn:hover{background:var(--blue-bg)}
+
+  /* STAKEHOLDER CARD DETAILS */
+  .sh-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .sh-bar-wrap{display:flex;align-items:center;gap:8px;flex:1;margin-left:10px}
+
+  /* CATEGORY HEALTH TABLE */
+  .health-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+  .health-row:last-child{border-bottom:none}
+  .health-label{flex:2;color:var(--text2)}
+  .health-bar-wrap{flex:3;display:flex;align-items:center;gap:8px}
+  .health-val{width:40px;text-align:right;font-weight:500;color:var(--text)}
+  .health-sh{width:90px;flex-shrink:0}
+
+  /* NOTE */
+  .note{font-size:11px;color:var(--text3);margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Interview Survey <span>· 48 participants</span></div>
+  <div class="nav-tab active" onclick="showPage('kpi',this)">Executive KPIs</div>
+  <div class="nav-tab" onclick="showPage('scorecards',this)">Stakeholder scorecards</div>
+  <div class="nav-tab" onclick="showPage('categories',this)">Category deep-dive</div>
+  <div class="nav-tab" onclick="showPage('signals',this)">Signals &amp; flags</div>
+</nav>
+
+<!-- ===== PAGE 1: KPIs ===== -->
+<div id="page-kpi" class="page active">
+  <div class="section-label">Executive summary · interview process health</div>
+  <div style="font-size:22px;font-weight:600;color:var(--text);margin-bottom:4px">Interview process survey</div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:24px">4 stakeholder groups · 699 responses · 5 categories · scores are per-group only — no combined average</div>
+
+  <div class="g4" style="margin-bottom:24px">
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--teal)">4.1<span style="font-size:16px;color:var(--text3)">/5</span></div>
+      <div class="metric-lbl">Panelist confidence score</div>
+      <div class="metric-note">Communication rating scale</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--teal)">81%</div>
+      <div class="metric-lbl">Panelist acceptance rate</div>
+      <div class="metric-note">Avg across yes/no questions</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--amber)">63%</div>
+      <div class="metric-lbl">TA process acceptance rate</div>
+      <div class="metric-note">Visibility &amp; tracking gaps</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--red)">29%</div>
+      <div class="metric-lbl">Post-hire communication match</div>
+      <div class="metric-note">Panel rating vs mgmt assessment</div>
+    </div>
+  </div>
+
+  <div class="g4" style="margin-bottom:28px">
+    <div class="metric-card">
+      <div class="metric-val">87%</div>
+      <div class="metric-lbl">24-hr feedback compliance</div>
+      <div class="metric-note">Panelists self-reported</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--red)">0%</div>
+      <div class="metric-lbl">Workload fairness rating</div>
+      <div class="metric-note">0/1 panelists say it's fair</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--amber)">40–50%</div>
+      <div class="metric-lbl">Panel-to-offer conversion</div>
+      <div class="metric-note">TA estimated range</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--amber)">~15 days</div>
+      <div class="metric-lbl">Interview-to-offer timeline</div>
+      <div class="metric-note">TA reported average</div>
+    </div>
+  </div>
+
+  <hr>
+  <div class="section-label" style="margin-bottom:16px">KPI breakdown by stakeholder group</div>
+  <div class="g3">
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:15px;font-weight:600">Panelists</div>
+        <span class="badge badge-p">539 responses</span>
+      </div>
+      <div class="health-row"><span class="health-label">Communication confidence</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:82%;background:var(--teal)"></div></div><span class="health-val">4.1/5</span></div></div>
+      <div class="health-row"><span class="health-label">1–10 scale adequate</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:94%;background:var(--teal)"></div></div><span class="health-val">94%</span></div></div>
+      <div class="health-row"><span class="health-label">Submit feedback &lt;24h</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:87%;background:var(--teal)"></div></div><span class="health-val">87%</span></div></div>
+      <div class="health-row"><span class="health-label">Want better tooling</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:76%;background:var(--blue)"></div></div><span class="health-val">76%</span></div></div>
+      <div class="health-row"><span class="health-label">Feedback challenges</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:60%;background:var(--amber)"></div></div><span class="health-val">60%</span></div></div>
+      <div class="health-row"><span class="health-label">Workload fairly distributed</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:0%;background:var(--red)"></div></div><span class="health-val" style="color:var(--red)">0%</span></div></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:15px;font-weight:600">Talent acquisition</div>
+        <span class="badge badge-ta">133 responses</span>
+      </div>
+      <div class="health-row"><span class="health-label">Visibility on feedback status</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:86%;background:var(--teal)"></div></div><span class="health-val">86%</span></div></div>
+      <div class="health-row"><span class="health-label">Can compare ratings by panel</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:86%;background:var(--teal)"></div></div><span class="health-val">86%</span></div></div>
+      <div class="health-row"><span class="health-label">Panelist rating consistency</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:67%;background:var(--amber)"></div></div><span class="health-val">67%</span></div></div>
+      <div class="health-row"><span class="health-label">Panel-to-offer data exists</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:29%;background:var(--amber)"></div></div><span class="health-val">29%</span></div></div>
+      <div class="health-row"><span class="health-label">Post-hire feedback collected</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:14%;background:var(--red)"></div></div><span class="health-val" style="color:var(--red)">14%</span></div></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:15px;font-weight:600">Management &amp; HC</div>
+        <span class="badge badge-m">27 responses</span>
+      </div>
+      <div class="health-row"><span class="health-label">Satisfied with feedback depth</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:83%;background:var(--teal)"></div></div><span class="health-val">83%</span></div></div>
+      <div class="health-row"><span class="health-label">Feedback delays affect hiring</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:0%;background:var(--teal)"></div></div><span class="health-val">Never</span></div></div>
+      <div class="health-row"><span class="health-label">Panel rating alignment (post-hire)</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:20%;background:var(--red)"></div></div><span class="health-val" style="color:var(--red)">Below</span></div></div>
+      <div class="health-row"><span class="health-label">HC: workload mechanisms ok</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:75%;background:var(--amber)"></div></div><span class="health-val">75%</span></div></div>
+      <div style="background:var(--red-bg);border-radius:var(--radius);padding:10px 12px;margin-top:12px">
+        <div style="font-size:11px;font-weight:600;color:var(--red-text)">Critical: 4 of 5 post-hire assessments rated below panel expectations</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+  <div class="note">Each stakeholder group answered different questions. Scores are never combined across groups. The overall 63/100 score is not displayed — management's concern is valid: different question sets cannot produce a meaningful combined score.</div>
+</div>
+
+<!-- ===== PAGE 2: SCORECARDS ===== -->
+<div id="page-scorecards" class="page">
+  <div class="section-label">Stakeholder scorecards — independently scored</div>
+  <div class="section-title">How each group sees the process</div>
+  <div class="section-sub">Scores derived only from each group's own quantifiable responses. Groups are not compared or averaged.</div>
+
+  <div class="g2">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--teal-bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--teal-text)">P</div>
+        <div><div style="font-size:15px;font-weight:600">Panelists</div><div style="font-size:11px;color:var(--text2)">539 responses · 5 questions groups · 3 categories</div></div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Quantified sentiment</div>
+      <div class="health-row"><span class="health-label" style="flex:3">Communication confidence (scale 1–5)</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:82%;background:var(--teal)"></div></div><span class="health-val">4.1/5</span></div></div>
+      <div class="health-row"><span class="health-label" style="flex:3">Overall yes/no acceptance rate</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:81%;background:var(--teal)"></div></div><span class="health-val">81%</span></div></div>
+      <div class="health-row"><span class="health-label" style="flex:3">Feedback template effectiveness</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:70%;background:var(--amber)"></div></div><span class="health-val">70%</span></div></div>
+      <div style="margin-top:14px;font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Workload impact frequency (n=31)</div>
+      <div class="freq-row"><span class="freq-label">Sometimes</span><div class="freq-bar" style="width:39%;background:var(--amber)"></div><span style="font-size:12px;color:var(--text);font-weight:500">12</span></div>
+      <div class="freq-row"><span class="freq-label">Rarely</span><div class="freq-bar" style="width:26%;background:var(--teal)"></div><span style="font-size:12px;color:var(--text);font-weight:500">8</span></div>
+      <div class="freq-row"><span class="freq-label">Often / Always</span><div class="freq-bar" style="width:26%;background:var(--red)"></div><span style="font-size:12px;color:var(--text);font-weight:500">8</span></div>
+      <div class="freq-row"><span class="freq-label">Never</span><div class="freq-bar" style="width:10%;background:var(--bg3)"></div><span style="font-size:12px;color:var(--text);font-weight:500">3</span></div>
+      <div class="note">310 open-ended responses excluded from scoring. Available in evidence drill-down.</div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--blue-text)">TA</div>
+        <div><div style="font-size:15px;font-weight:600">Talent acquisition</div><div style="font-size:11px;color:var(--text2)">133 responses · 5 categories including pipeline metrics</div></div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Process visibility</div>
+      <div class="health-row"><span class="health-label" style="flex:3">Feedback submission visibility</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:86%;background:var(--teal)"></div></div><span class="health-val">86%</span></div></div>
+      <div class="health-row"><span class="health-label" style="flex:3">Rating comparison by panel/role</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:86%;background:var(--teal)"></div></div><span class="health-val">86%</span></div></div>
+      <div class="health-row"><span class="health-label" style="flex:3">Panelist rating consistency</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:67%;background:var(--amber)"></div></div><span class="health-val">67%</span></div></div>
+      <div style="margin-top:14px;font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Pipeline data maturity</div>
+      <div class="health-row"><span class="health-label" style="flex:3">Panel-to-offer ratio tracked</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:29%;background:var(--amber)"></div></div><span class="health-val">29%</span></div></div>
+      <div class="health-row"><span class="health-label" style="flex:3">Post-hire comm feedback exists</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:14%;background:var(--red)"></div></div><span class="health-val" style="color:var(--red)">14%</span></div></div>
+      <div style="background:var(--amber-bg);border-radius:var(--radius);padding:10px 12px;margin-top:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--amber-text)">Panel assignment is entirely manual — no load-balancing system exists</div>
+      </div>
+      <div class="note">92 open-ended responses available in evidence drill-down.</div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--purple-text)">M</div>
+        <div><div style="font-size:15px;font-weight:600">Management</div><div style="font-size:11px;color:var(--text2)">18 responses · 2 categories · outcome focus</div></div>
+      </div>
+      <div class="health-row"><span class="health-label" style="flex:3">Happy with feedback depth</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:83%;background:var(--teal)"></div></div><span class="health-val">83%</span></div></div>
+      <div class="health-row"><span class="health-label" style="flex:3">Panel comm. rating → post-hire</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:20%;background:var(--red)"></div></div><span class="health-val" style="color:var(--red)">4/5 below</span></div></div>
+      <div style="background:var(--red-bg);border-radius:var(--radius);padding:10px 12px;margin-top:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--red-text);margin-bottom:4px">Critical misalignment</div>
+        <div style="font-size:11px;color:var(--red-text)">Panelists rate confidence at 4.1/5. Management sees 4 of 5 post-hire performance assessments come in below the panel's original communication rating. Calibration, not scale, is the problem.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--amber-text)">HC</div>
+        <div><div style="font-size:15px;font-weight:600">Human capital</div><div style="font-size:11px;color:var(--text2)">9 responses · workload category only · small sample</div></div>
+      </div>
+      <div class="health-row"><span class="health-label" style="flex:3">Workload distribution mechanisms</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:75%;background:var(--amber)"></div></div><span class="health-val">75%</span></div></div>
+      <div style="margin-top:14px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Key qualitative signals from HC:</div>
+        <div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg2);border-radius:var(--radius);margin-bottom:6px">"Some interviewers carrying heavy loads — signs of fatigue observed"</div>
+        <div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg2);border-radius:var(--radius);margin-bottom:6px">"Open to broadening the panel pool and training new interviewers"</div>
+        <div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg2);border-radius:var(--radius)">"Rotation mechanisms exist but are not consistently enforced"</div>
+      </div>
+      <div class="note">Small sample — treat as directional signal only. 5 open-ended responses available.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE 3: CATEGORIES ===== -->
+<div id="page-categories" class="page">
+  <div class="section-label">Category deep-dive — pain points, actions &amp; evidence</div>
+  <div class="section-title">Per-category analysis</div>
+  <div class="section-sub">Each category shows who was asked, what they said, key pain points, recommended actions, and direct evidence quotes.</div>
+
+  <div class="cat-tabs">
+    <div class="cat-tab active" onclick="showCat('comm',this)">Candidate communication</div>
+    <div class="cat-tab" onclick="showCat('feedback',this)">Feedback timeliness</div>
+    <div class="cat-tab" onclick="showCat('workload',this)">Interviewer workload</div>
+    <div class="cat-tab" onclick="showCat('offer',this)">Offer acceptance</div>
+    <div class="cat-tab" onclick="showCat('pipeline',this)">Panel-to-offer pipeline</div>
+  </div>
+
+  <!-- COMMUNICATION -->
+  <div id="cat-comm" class="cat-content active">
+    <div class="g3" style="margin-bottom:20px">
+      <div class="card" style="grid-column:span 1">
+        <div class="section-label">At a glance</div>
+        <div class="health-row"><span class="health-label">Panelists: confidence</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:82%;background:var(--teal)"></div></div><span class="health-val">4.1/5</span></div></div>
+        <div class="health-row"><span class="health-label">Panelists: scale adequate</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:94%;background:var(--teal)"></div></div><span class="health-val">94%</span></div></div>
+        <div class="health-row"><span class="health-label">TA: panelists consistent</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:67%;background:var(--amber)"></div></div><span class="health-val">67%</span></div></div>
+        <div class="health-row"><span class="health-label">TA: post-hire feedback exists</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:14%;background:var(--red)"></div></div><span class="health-val" style="color:var(--red)">14%</span></div></div>
+        <div class="health-row"><span class="health-label">Mgmt: post-hire alignment</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:20%;background:var(--red)"></div></div><span class="health-val" style="color:var(--red)">Below</span></div></div>
+        <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge badge-p">Panelists</span>
+          <span class="badge badge-ta">Talent acquisition</span>
+          <span class="badge badge-m">Management</span>
+        </div>
+        <div style="margin-top:12px"><button class="drill-btn" onclick="openModal('Candidate Communication Rating','all')">View all evidence →</button></div>
+      </div>
+      <div class="card" style="grid-column:span 2">
+        <div class="section-label">Pain points</div>
+        <div class="pa-item"><div class="pa-num pa-num-red">1</div><div><div class="pa-title">Panel ratings don't predict post-hire performance</div><div class="pa-sub">Management rates 4 of 5 new hires below the panel's original communication score. Panelists are confident (4.1/5) but their signal doesn't translate to on-the-job reality.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Candidate Communication Rating','Performance')">See performance evidence →</button></div></div>
+        <div class="pa-item"><div class="pa-num pa-num-red">2</div><div><div class="pa-title">No post-hire feedback loop — blind spot in the data</div><div class="pa-sub">Only 14% of TA respondents confirm post-hire communication feedback is gathered. The panel has no signal to self-correct over time.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Candidate Communication Rating','Acceptance')">See TA evidence →</button></div></div>
+        <div class="pa-item"><div class="pa-num pa-num-red">3</div><div><div class="pa-title">Inconsistent rating standards across panelists</div><div class="pa-sub">TA rates panelist consistency at only 67% effective. Even supportive panelists flag that "what constitutes a 7 vs 8" is not calibrated.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Candidate Communication Rating','Effectiveness')">See consistency evidence →</button></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">Recommended actions</div>
+      <div class="g3">
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">A</div><div><div class="pa-title">Introduce calibration sessions quarterly</div><div class="pa-sub">Run panelist calibration sessions where the same candidate profile is rated by multiple panelists independently, then discussed. Address "7 vs 8" ambiguity with worked examples.</div></div></div>
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">B</div><div><div class="pa-title">Create a post-hire feedback mechanism</div><div class="pa-sub">At 60 and 90 days post-joining, line managers complete a 3-question communication assessment. Feed results back to the panel who interviewed the candidate.</div></div></div>
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">C</div><div><div class="pa-title">Publish a communication rubric</div><div class="pa-sub">Define what "clarity", "listening", and "structure" mean at each score band (1–3, 4–6, 7–8, 9–10) with observable behaviours. Share with all panelists before next interview cycle.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div id="cat-feedback" class="cat-content">
+    <div class="g3" style="margin-bottom:20px">
+      <div class="card" style="grid-column:span 1">
+        <div class="section-label">At a glance</div>
+        <div class="health-row"><span class="health-label">Panelists: submit &lt;24h</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:87%;background:var(--teal)"></div></div><span class="health-val">87%</span></div></div>
+        <div class="health-row"><span class="health-label">Panelists: have challenges</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:60%;background:var(--amber)"></div></div><span class="health-val">60%</span></div></div>
+        <div class="health-row"><span class="health-label">Panelists: want better tooling</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:76%;background:var(--blue)"></div></div><span class="health-val">76%</span></div></div>
+        <div class="health-row"><span class="health-label">TA: feedback visibility</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:86%;background:var(--teal)"></div></div><span class="health-val">86%</span></div></div>
+        <div class="health-row"><span class="health-label">Mgmt: delays affect hiring</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--teal)"></div></div><span class="health-val">Never</span></div></div>
+        <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge badge-p">Panelists</span>
+          <span class="badge badge-ta">TA</span>
+          <span class="badge badge-m">Management</span>
+        </div>
+        <div style="margin-top:12px"><button class="drill-btn" onclick="openModal('Feedback Completeness & Timeliness','all')">View all evidence →</button></div>
+      </div>
+      <div class="card" style="grid-column:span 2">
+        <div class="section-label">Pain points</div>
+        <div class="pa-item"><div class="pa-num pa-num-red">1</div><div><div class="pa-title">Back-to-back interviews are the #1 delay driver</div><div class="pa-sub">Repeatedly cited by panelists: no buffer time after interviews leads to delayed or incomplete submissions. Takes 15–30 mins per feedback — unplanned time blocks cause slippage.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Feedback Completeness & Timeliness','Open Ended')">See open-ended evidence →</button></div></div>
+        <div class="pa-item"><div class="pa-num pa-num-red">2</div><div><div class="pa-title">Current template is "functional but rigid"</div><div class="pa-sub">70% rate the template as effective, but the most common qualifier is "could benefit from an optional narrative section." Structured but lacks nuance.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Feedback Completeness & Timeliness','Effectiveness')">See effectiveness evidence →</button></div></div>
+        <div class="pa-item"><div class="pa-num pa-num-red">3</div><div><div class="pa-title">Feedback tracking is fragmented across email + system</div><div class="pa-sub">TA respondents describe feedback as "stored in recruitment system AND shared by email" — no single source of truth. Manual follow-ups required.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Feedback Completeness & Timeliness','Acceptance')">See TA visibility evidence →</button></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">Recommended actions</div>
+      <div class="g3">
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">A</div><div><div class="pa-title">Enforce a 15-minute buffer after every interview</div><div class="pa-sub">Calendar scheduling rules should prevent back-to-back bookings. A 15-minute block post-interview enables immediate feedback while recall is fresh — addressing the #1 cited barrier.</div></div></div>
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">B</div><div><div class="pa-title">Add an optional narrative summary field to the template</div><div class="pa-sub">76% of panelists want better tooling. Adding one free-text "overall impression" field would address the "rigid" feedback without restructuring the whole form.</div></div></div>
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">C</div><div><div class="pa-title">Consolidate feedback into a single tracked system</div><div class="pa-sub">Eliminate email as a feedback channel. All submissions go through the recruitment system with timestamp and completion-status visible to TA in real time.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKLOAD -->
+  <div id="cat-workload" class="cat-content">
+    <div class="g3" style="margin-bottom:20px">
+      <div class="card" style="grid-column:span 1">
+        <div class="section-label">At a glance</div>
+        <div class="health-row"><span class="health-label">Workload manageable</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:83%;background:var(--teal)"></div></div><span class="health-val">83%</span></div></div>
+        <div class="health-row"><span class="health-label">Distributed fairly</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:0%;background:var(--red)"></div></div><span class="health-val" style="color:var(--red)">0%</span></div></div>
+        <div class="health-row"><span class="health-label">HC: mechanisms working</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:75%;background:var(--amber)"></div></div><span class="health-val">75%</span></div></div>
+        <div style="margin-top:10px;font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px">Impact on core work:</div>
+        <div class="freq-row"><span class="freq-label">Sometimes</span><div class="freq-bar" style="width:42%;background:var(--amber)"></div><span style="font-size:12px;font-weight:500">12</span></div>
+        <div class="freq-row"><span class="freq-label">Always+Often</span><div class="freq-bar" style="width:28%;background:var(--red)"></div><span style="font-size:12px;font-weight:500">8</span></div>
+        <div class="freq-row"><span class="freq-label">Rarely+Never</span><div class="freq-bar" style="width:30%;background:var(--teal)"></div><span style="font-size:12px;font-weight:500">11</span></div>
+        <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge badge-p">Panelists</span>
+          <span class="badge badge-ta">TA</span>
+          <span class="badge badge-hc">Human capital</span>
+        </div>
+        <div style="margin-top:12px"><button class="drill-btn" onclick="openModal('Interviewer Workload Balance','all')">View all evidence →</button></div>
+      </div>
+      <div class="card" style="grid-column:span 2">
+        <div class="section-label">Pain points</div>
+        <div class="pa-item"><div class="pa-num pa-num-red">1</div><div><div class="pa-title">Load distribution is unanimously seen as unfair</div><div class="pa-sub">0% of panelists (in the fairness question) say workload is evenly distributed. Some panelists conduct 15/month; others had zero last quarter. No system distributes load systematically.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Interviewer Workload Balance','Acceptance')">See fairness evidence →</button></div></div>
+        <div class="pa-item"><div class="pa-num pa-num-red">2</div><div><div class="pa-title">Assignment is entirely manual — TA has no load visibility</div><div class="pa-sub">TA describe the assignment process as "coordinated manually" and "tedious and labour-intensive." No dashboard or tracker for who has conducted how many interviews.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Interviewer Workload Balance','Open Ended')">See TA process evidence →</button></div></div>
+        <div class="pa-item"><div class="pa-num pa-num-red">3</div><div><div class="pa-title">High volume causes context-switching and cognitive load</div><div class="pa-sub">26 of 31 panelists say volume "sometimes/often/always" affects core work focus. "Constant context-switching lowers overall cognitive efficiency" — a direct quote from the data.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Interviewer Workload Balance','Frequency')">See frequency evidence →</button></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">Recommended actions</div>
+      <div class="g3">
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">A</div><div><div class="pa-title">Build a simple interview load tracker</div><div class="pa-sub">Track interviews conducted per panelist per month in a shared dashboard. TA uses this before assigning to ensure rotation. Even a spreadsheet solves the "who has done the most" problem.</div></div></div>
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">B</div><div><div class="pa-title">Set a monthly interview cap per panelist</div><div class="pa-sub">Define a ceiling (e.g. 8–10/month) based on role and seniority. Excess demand triggers panel expansion. HC has already flagged openness to training new interviewers.</div></div></div>
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">C</div><div><div class="pa-title">Introduce fixed weekly interview slots</div><div class="pa-sub">Majority of panelists prefer fixed slots over ad-hoc. TA publishes available slots weekly; panelists select preferred times. Reduces last-minute disruption to core project work.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OFFER -->
+  <div id="cat-offer" class="cat-content">
+    <div class="g3" style="margin-bottom:20px">
+      <div class="card" style="grid-column:span 1">
+        <div class="section-label">At a glance</div>
+        <div style="background:var(--amber-bg);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:600;color:var(--amber-text)">Only TA was asked about this category</div>
+        </div>
+        <div class="health-row"><span class="health-label">Acceptance ratio (est.)</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:80%;background:var(--teal)"></div></div><span class="health-val">4:5</span></div></div>
+        <div style="font-size:12px;color:var(--text2);margin-top:10px;line-height:1.6">All responses are open-ended. No quantifiable data exists in the current system for offer acceptance rates by panel, role, or period.</div>
+        <div style="margin-top:12px;display:flex;gap:6px">
+          <span class="badge badge-ta">TA only</span>
+        </div>
+        <div style="margin-top:12px"><button class="drill-btn" onclick="openModal('Offer Acceptance Rate','all')">View all evidence →</button></div>
+      </div>
+      <div class="card" style="grid-column:span 2">
+        <div class="section-label">Pain points</div>
+        <div class="pa-item"><div class="pa-num pa-num-red">1</div><div><div class="pa-title">Last-minute candidate backouts with no early warning</div><div class="pa-sub">"Most candidates accept and inform us at the last minute regarding backouts." No structured pre-joining engagement to identify at-risk candidates before they drop.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Offer Acceptance Rate','Open Ended')">See evidence →</button></div></div>
+        <div class="pa-item"><div class="pa-num pa-num-red">2</div><div><div class="pa-title">Seasonal patterns exist but aren't actioned</div><div class="pa-sub">TA recognises declines peak around appraisal cycles and holidays. Candidates with longer notice periods are higher dropout risk. This insight exists in heads, not in data.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Offer Acceptance Rate','Open Ended')">See patterns evidence →</button></div></div>
+        <div class="pa-item"><div class="pa-num pa-num-red">3</div><div><div class="pa-title">Mumbai location shows elevated drop-after-accept rate</div><div class="pa-sub">Specifically flagged: "candidates are accepting offers but not joining" particularly for Mumbai positions. Location-specific retention issue that needs targeted action.</div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">Recommended actions</div>
+      <div class="g3">
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">A</div><div><div class="pa-title">Track acceptance vs decline by role and season</div><div class="pa-sub">Start recording offer outcomes in a structured format: role, level, location, acceptance/decline, reason code. 3 months of data will reveal actionable patterns currently invisible.</div></div></div>
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">B</div><div><div class="pa-title">Introduce a post-offer engagement touchpoint</div><div class="pa-sub">A brief check-in call or message 1 week post-offer (especially for long-notice candidates) creates an early warning signal and builds engagement before joining.</div></div></div>
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">C</div><div><div class="pa-title">Investigate Mumbai dropout pattern specifically</div><div class="pa-sub">Surface the last 6 months of Mumbai offer data. Identify whether it's compensation, role, or competitor offers driving backouts. Consider a location-specific retention approach.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div id="cat-pipeline" class="cat-content">
+    <div class="g3" style="margin-bottom:20px">
+      <div class="card" style="grid-column:span 1">
+        <div class="section-label">At a glance</div>
+        <div class="health-row"><span class="health-label">Panel-to-offer conversion</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:50%;background:var(--amber)"></div></div><span class="health-val">~50%</span></div></div>
+        <div class="health-row"><span class="health-label">Ratio tracked by panel</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:29%;background:var(--red)"></div></div><span class="health-val" style="color:var(--red)">29%</span></div></div>
+        <div class="health-row"><span class="health-label">Avg time: interview→offer</span><div class="health-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:60%;background:var(--amber)"></div></div><span class="health-val">~15d</span></div></div>
+        <div style="margin-top:12px;display:flex;gap:6px">
+          <span class="badge badge-ta">TA only</span>
+        </div>
+        <div style="margin-top:12px"><button class="drill-btn" onclick="openModal('Panel-to-Offer Conversion Rate','all')">View all evidence →</button></div>
+      </div>
+      <div class="card" style="grid-column:span 2">
+        <div class="section-label">Pain points</div>
+        <div class="pa-item"><div class="pa-num pa-num-red">1</div><div><div class="pa-title">No structured data on panel-level conversion rates</div><div class="pa-sub">71% of TA say conversion ratios by panel don't exist or are just starting to be tracked. Without this, it's impossible to identify which panels are over/under-selecting.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Panel-to-Offer Conversion Rate','Acceptance')">See tracking evidence →</button></div></div>
+        <div class="pa-item"><div class="pa-num pa-num-red">2</div><div><div class="pa-title">Client-side delays extend the 15-day timeline</div><div class="pa-sub">"Minimum 2 weeks, gets extended" due to client slot availability. Candidate interest drops during extended waits. Some strong candidates lost to competitor offers during this window.</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Panel-to-Offer Conversion Rate','Open Ended')">See timeline evidence →</button></div></div>
+        <div class="pa-item"><div class="pa-num pa-num-red">3</div><div><div class="pa-title">Panel evaluation style varies — some seen as too strict</div><div class="pa-sub">Recruiters observe variation: "some panels rigorous, others lenient." No standardised benchmark for what constitutes a pass at each level.</div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">Recommended actions</div>
+      <div class="g3">
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">A</div><div><div class="pa-title">Create a panel conversion dashboard</div><div class="pa-sub">Track interview→offer ratios by panel, role, and skill set. Review quarterly. Flag panels with &lt;30% or &gt;80% conversion as outliers — both directions signal calibration issues.</div></div></div>
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">B</div><div><div class="pa-title">Set an SLA for client feedback and offer timelines</div><div class="pa-sub">Define a 10-business-day target from first panel interview to offer decision. Escalate to hiring manager when client slots cause delay beyond this threshold.</div></div></div>
+        <div class="pa-item" style="border:none;padding:8px 0"><div class="pa-num pa-num-green">C</div><div><div class="pa-title">Publish pass criteria by level</div><div class="pa-sub">Define minimum expectations for a "pass" at each role level. Reduces panel-to-panel variance and gives TA a benchmark to identify outlier panels.</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE 4: SIGNALS ===== -->
+<div id="page-signals" class="page">
+  <div class="section-label">Signals &amp; flags — actionable insights sorted by severity</div>
+  <div class="section-title">What needs attention and what is working</div>
+  <div class="section-sub">Direct signals from the data, linked to evidence. Stakeholder context preserved — no cross-group averaging.</div>
+
+  <div class="g2">
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block"></span>Critical flags</div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--red)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">Management — post-hire vs panel communication alignment</div><div style="font-size:13px;font-weight:500">4 of 5 post-hire assessments rated below expectations</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Candidate Communication Rating','Performance')">Evidence →</button></div></div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--red)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">Panelists — fairness of workload distribution</div><div style="font-size:13px;font-weight:500">0% say workload is fairly distributed across panelists</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Interviewer Workload Balance','Acceptance')">Evidence →</button></div></div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--red)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">TA — post-hire communication feedback collected</div><div style="font-size:13px;font-weight:500">Only 14% confirm post-hire data is gathered — major blind spot</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Candidate Communication Rating','Acceptance')">Evidence →</button></div></div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:var(--amber);display:inline-block"></span>Attention areas</div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--amber)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">TA — panel-to-offer conversion data tracked by panel</div><div style="font-size:13px;font-weight:500">Only 29% say structured ratio data exists per panel</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Panel-to-Offer Conversion Rate','Acceptance')">Evidence →</button></div></div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--amber)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">Panelists — face challenges submitting feedback</div><div style="font-size:13px;font-weight:500">60% report friction — back-to-back schedules the main cause</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Feedback Completeness & Timeliness','Acceptance')">Evidence →</button></div></div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--amber)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">TA — panelist rating consistency</div><div style="font-size:13px;font-weight:500">Only 67% find panelists consistent — 1 rated "Ineffective"</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Candidate Communication Rating','Effectiveness')">Evidence →</button></div></div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--amber)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">Panelists — interview volume impacts core work</div><div style="font-size:13px;font-weight:500">26/31 say volume affects focus sometimes, often or always</div><button class="drill-btn" style="margin-top:6px" onclick="openModal('Interviewer Workload Balance','Frequency')">Evidence →</button></div></div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:var(--teal);display:inline-block"></span>Working well</div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--teal)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">Panelists — 1–10 communication scale</div><div style="font-size:13px;font-weight:500">94% say the scale is adequate — not the problem</div></div></div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--teal)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">Panelists — 24-hour feedback compliance</div><div style="font-size:13px;font-weight:500">87% meet the deadline despite challenges</div></div></div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--teal)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">TA — feedback submission visibility</div><div style="font-size:13px;font-weight:500">86% have adequate visibility today</div></div></div>
+      <div class="signal-row"><div class="signal-dot" style="background:var(--teal)"></div><div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">Panelists — receptive to improvements</div><div style="font-size:13px;font-weight:500">76% open to reminders and guided forms — good change appetite</div></div></div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:var(--blue);display:inline-block"></span>Top 3 systemic actions</div>
+      <div class="pa-item"><div class="pa-num pa-num-green">1</div><div><div class="pa-title">Close the post-hire feedback loop</div><div class="pa-sub">The most critical gap. Without it, panelists cannot self-correct. Affects communication rating accuracy, calibration, and long-term hiring quality.</div></div></div>
+      <div class="pa-item"><div class="pa-num pa-num-green">2</div><div><div class="pa-title">Build an interview load tracker</div><div class="pa-sub">Solves the fairness problem unanimously flagged by panelists and independently confirmed by TA and HC. Low-effort, high-impact — even a spreadsheet would be a step forward.</div></div></div>
+      <div class="pa-item"><div class="pa-num pa-num-green">3</div><div><div class="pa-title">Run a calibration session for panelists</div><div class="pa-sub">Addresses both post-hire misalignment and TA's 67% consistency rating. Can be run as a 90-minute workshop using real sanitised candidate profiles from the last cycle.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- EVIDENCE MODAL -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="modal-title">Evidence</h3>
+        <p id="modal-sub"></p>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-filters" id="modal-filters"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const EVIDENCE = {"Candidate Communication Rating":[{"s":"Panelists","q":"When you evaluate communication, what behaviors or signals do you look for?","t":"Open Ended","r":"","e":"Clarity of thought, logical structure of answers, ability to articulate complex ideas simply, and active listening skills (e.g., answering the question asked).These are the core elements of profession"},{"s":"Panelists","q":"How confident are you that the communication ratings you give during interviews reflect re","t":"Scale1\u20135","r":"4","e":"While interview communication often provides a reliable snapshot of a candidate\u2019s interpersonal and articulation skills, real-world performance can be influenced by factors like team dynamics, work pr"},{"s":"Panelists","q":"What specific aspects of communication (e.g., clarity, listening, articulation) do you foc","t":"Open Ended","r":"","e":"Clarity and structure- a candidate must be able to break down a problem and explain their solution in a way that is easy for a listener to follow, which speaks to both clarity and logical structure"},{"s":"Panelists","q":"Does our current 1\u201310 rating scale give you enough room to capture communication quality a","t":"Acceptance","r":"Yes","e":"The 1\u201310 scale is adequate for most distinctions. My concern is less the scale size and more the consistency of how panelists define 7 vs. 8, which can be improved with calibration."},{"s":"Panelists","q":"How do you handle situations where language style or accent differs but the candidate comm","t":"Open Ended","r":"","e":"I prioritize content and clarity of ideas over accent or style differences."},{"s":"Panelists","q":"When you evaluate communication, what behaviors or signals do you look for?","t":"Open Ended","r":"The assessment should evaluate the candidate's listening and grasping ability...","e":"Many candidates fail to listen carefully to the question asked or the instructions given during the assessment."},{"s":"Panelists","q":"How confident are you that the communication ratings you give during interviews reflect re","t":"Scale1\u20135","r":"4","e":"Candidates to whom I have given high ratings have consistently performed well on the team."},{"s":"Talent Acciquisition","q":"How is \u201ccommunication skills\u201d currently assessed and recorded in the interview feedback fo","t":"Open Ended","r":"","e":"Communication skills are rated out of 10 based on the screening call. Candidate's presentation, articulating their experiences. Their communication style aligns with our expectations."},{"s":"Talent Acciquisition","q":"How consistent do you find panelists\u2019 approach to rating communication?","t":"Effectiveness","r":"Ineffective","e":"The panelists\u2019 approach to rating communication skills is somewhat inconsistent. While most assess based on clarity, confidence, and articulation, the interpretation of rating levels (e.g., \u201cGood\u201d, \u201cE"},{"s":"Talent Acciquisition","q":"Do we currently gather any post-hire feedback on how a candidate\u2019s communication translate","t":"Acceptance","r":"No","e":"Currently, post-hire feedback on how a candidate\u2019s communication skills translate on the job is not formally gathered or tracked in email"},{"s":"Talent Acciquisition","q":"Do we currently gather any post-hire feedback on how a candidate\u2019s communication translate","t":"Acceptance","r":"No","e":"At present, we don\u2019t have a formal process to gather post-hire feedback on how a candidate\u2019s communication translates on the job."},{"s":"Talent Acciquisition","q":"Are you able to view and compare communication-skill ratings by panel, role, or business u","t":"Acceptance","r":"No","e":"Currently, communication-skill ratings are not directly comparable across panels, roles. The feedback is captured at the individual interview level, but there is no centralized or standardized mechani"},{"s":"Management","q":"How closely does that align with the panel\u2019s original communication rating?","t":"Performance","r":"Below Expectations","e":"it depends on function. I have seen most of the times, TA team always projects certain candidate rating is above average. this needs to be strengthened. this is our weakest link in my opinion. Technical communication still needs lot of improvement."},{"s":"Management","q":"Have you noticed any recurring pattern where interview ratings over- or under-estimate comm","t":"Acceptance","r":"Yes","e":"Panelists tend to overrate communication slightly. Post onboarding, several hires needed coaching on structured communication in client-facing settings."},{"s":"Panelists","q":"How confident are you that the communication ratings you give during interviews reflect re","t":"Scale1\u20135","r":"4","e":"I\u2019m fairly confident. I focus on how clearly and confidently candidates express their thoughts and listen to questions. I use real examples or situational questions."},{"s":"Panelists","q":"Does our current 1\u201310 rating scale give you enough room to capture communication quality a","t":"Acceptance","r":"Yes","e":"The scale provides enough granularity, though clear calibration guidance would help consistency."}],"Feedback Completeness & Timeliness":[{"s":"Panelists","q":"Thinking about your recent interviews, were you able to share feedback within 24 hours?","t":"Acceptance","r":"Yes","e":"Workload and back-to-back meetings can delay feedback, though calendar blocking and reminders help ensure timeliness."},{"s":"Panelists","q":"What factors or situations sometimes delay your feedback submission?","t":"Open Ended","r":"","e":"High volume of urgent core project work, complex interviews requiring more time to synthesize notes, or scheduling a second interview immediately after the first."},{"s":"Panelists","q":"Are there any challenges in submitting feedback right after interviews?","t":"Acceptance","r":"Yes","e":"Adding a quick summary option or guided form would streamline feedback entry, reducing friction right after sessions."},{"s":"Panelists","q":"About how much time does it usually take to write a thoughtful feedback report?","t":"Open Ended","r":"","e":"20-30 Minutes"},{"s":"Panelists","q":"How well does our current feedback template help you describe candidate strengths?","t":"Effectiveness","r":"Effective","e":"The template is structured well but could benefit from an optional narrative summary section for nuanced feedback."},{"s":"Panelists","q":"Would automated reminders or a more guided feedback form improve your experience?","t":"Acceptance","r":"Yes","e":"Automated reminders (if no feedback is submitted after 12 hours) would be very helpful. A more guided form with structured prompts would significantly improve depth and consistency."},{"s":"Panelists","q":"What factors or situations sometimes delay your feedback submission?","t":"Open Ended","r":"","e":"Occasionally, delays happen due to back-to-back meetings, urgent project work, or overlapping interviews."},{"s":"Panelists","q":"Are there any challenges in submitting feedback right after interviews?","t":"Open Ended","r":"","e":"Yes, mainly when interviews are back-to-back. A short gap after each interview would help."},{"s":"Talent Acciquisition","q":"How easy is it today for you to access and track interview feedback data when needed?","t":"Open Ended","r":"","e":"Feedback is stored within the recruitment system and shared through emails, making it time-consuming to retrieve. There is tracking across candidates, roles, or interviewers."},{"s":"Talent Acciquisition","q":"Do we currently have visibility into when feedback is submitted?","t":"Acceptance","r":"No","e":"At present, we don\u2019t have real-time visibility into when feedback is submitted or whether all required fields are completed; tracking is done manually through email follow-ups."},{"s":"Talent Acciquisition","q":"Currently, accessing and tracking interview feedback","t":"Open Ended","r":"","e":"Currently, accessing and tracking interview feedback requires checking individual emails, as there isn\u2019t a centralized repository for this data"},{"s":"Talent Acciquisition","q":"On average, how long does it take between interview and feedback submission?","t":"Open Ended","r":"","e":"On average, internal panelists submit feedback within 1\u20132 business days, while client feedback typically takes 2\u20134 business days, and occasionally longer."},{"s":"Panelists","q":"Are there any challenges in submitting feedback right after interviews?","t":"Acceptance","r":"Yes","e":"A shorter, guided form would help summarize thoughts quickly while they're still fresh."},{"s":"Panelists","q":"How well does current feedback template help?","t":"Effectiveness","r":"Neutral","e":"It's functional but can feel rigid. A few open-ended prompts could make it more insightful."},{"s":"Panelists","q":"Thinking about your recent interviews, were you able to share feedback within 24 hours?","t":"Acceptance","r":"No","e":"Back-to-back meetings, urgent tasks, or late-day interviews often push feedback to the next day."}],"Interviewer Workload Balance":[{"s":"Panelists","q":"How fair does the interview workload feel across panelists?","t":"Open Ended","r":"","e":"Moderately fair. Workload balancing could improve by tracking interview frequency across panelists."},{"s":"Panelists","q":"How manageable do you find your current interview schedule alongside project work?","t":"Open Ended","r":"","e":"Manageable but occasionally tight during project peaks."},{"s":"Panelists","q":"Does a high interview volume ever affect your focus or output in your core work?","t":"Frequency","r":"Sometimes","e":"It sometimes affects my focus. It requires constant context-switching, which lowers the overall cognitive efficiency for core project tasks."},{"s":"Panelists","q":"Does a high interview volume ever affect your focus or output in your core work?","t":"Frequency","r":"Always","e":"Face difficulty since most times the work clients engage in continuous war-rooms"},{"s":"Panelists","q":"How manageable do you find your current interview schedule alongside project work?","t":"Open Ended","r":"","e":"Its not possible for me to take interviews anymore as the workload is a lot"},{"s":"Panelists","q":"Do you feel interview workload is fairly distributed across panelists?","t":"Acceptance","r":"No","e":"The distribution is uneven. Some colleagues handle 3-4x more interviews. A rotation system or cap would help."},{"s":"Talent Acciquisition","q":"How do you currently keep track of interview loads for each panelist?","t":"Open Ended","r":"","e":"It's all manual at the moment and for few roles we end up overloading few panels as others were busy in the project work"},{"s":"Talent Acciquisition","q":"Could you walk me through how interviewers are assigned today?","t":"Open Ended","r":"","e":"Interviewers are assigned based on a panel list for each skill set. While some panelists provide standard slots, most assignments are coordinated manually"},{"s":"Talent Acciquisition","q":"How do you currently keep track of interview loads?","t":"Open Ended","r":"","e":"Currently, we don\u2019t have a formal track of each panelist\u2019s interview load. We\u2019ve started tracking panels manually, which helps to some extent, but the process is still tedious and labor-intensive."},{"s":"Panelists","q":"How fair does the interview workload feel across panelists?","t":"Open Ended","r":"","e":"It feels uneven at times. Transparent scheduling and rotation would help distribute load better."},{"s":"Panelists","q":"Does a high interview volume ever affect your focus or output in your core work?","t":"Frequency","r":"Often","e":"During busy weeks, interviews can disrupt deep work time and shift focus."},{"s":"Panelists","q":"Would you prefer fixed weekly slots or ad-hoc scheduling?","t":"Open Ended","r":"","e":"I prefer fixed slots\u2014it helps plan deep work better and creates consistency."},{"s":"Panelists","q":"How fair does the interview workload feel?","t":"Open Ended","r":"","e":"By making slots distributed equally or adding more panel members."}],"Offer Acceptance Rate":[{"s":"Talent Acciquisition","q":"How have offer acceptances compared to declines lately? Any patterns you've noticed?","t":"Open Ended","r":"","e":"Ongoing coordination between our panels. While many are enhancing their bandwidth, I've noticed that a few panels are struggling with collaboration."},{"s":"Talent Acciquisition","q":"How have offer acceptances compared to declines lately?","t":"Open Ended","r":"","e":"mostly 4-5 ratio"},{"s":"Talent Acciquisition","q":"How have offer acceptances compared to declines lately?","t":"Open Ended","r":"","e":"Haven't noticed any patterns so far but most of the candidates accept the offer and inform us in the last minute regarding backouts"},{"s":"Talent Acciquisition","q":"How have offer acceptances compared to declines lately?","t":"Open Ended","r":"","e":"Offer acceptances versus declines tend to vary seasonally\u2014around holidays or appraisal periods, declines increase. Candidates with longer notice periods also show a higher likelihood of dropping out."},{"s":"Talent Acciquisition","q":"How have offer acceptances compared to declines lately?","t":"Open Ended","r":"","e":"Declines happen sometimes because candidates are either retained by their current company or receive offers from product-based companies with high CTC"},{"s":"Talent Acciquisition","q":"How have offer acceptances compared to declines lately?","t":"Open Ended","r":"","e":"We\u2019ve noticed a pattern where candidates are accepting offers but not joining. This has been happening particularly for positions in the Mumbai location."}],"Panel-to-Offer Conversion Rate":[{"s":"Talent Acciquisition","q":"From your experience, roughly what portion of candidates interviewed move ahead?","t":"Open Ended","r":"","e":"Base regarding our candidate evaluation process. We follow a strict protocol to thoroughly assess candidate profiles. Our panel is well acquainted with the specific requirements for each role."},{"s":"Talent Acciquisition","q":"On average, how long does it take from first panel interview to final offer?","t":"Open Ended","r":"","e":"Its take 15 Days to complete the process of interview"},{"s":"Talent Acciquisition","q":"Do we have any trends or data showing interview-to-offer ratios by panel over time?","t":"Acceptance","r":"Yes","e":"We have tracker details with us"},{"s":"Talent Acciquisition","q":"Do we have any trends or data showing interview-to-offer ratios by panel?","t":"Acceptance","r":"No","e":"But we have recently started tracking"},{"s":"Talent Acciquisition","q":"Thinking about candidates interviewed recently, what proportion moved to the next stage?","t":"Open Ended","r":"","e":"40\u201350% of candidates progressed to the next or final stage. The selection rate varies depending on the role and skill requirements."},{"s":"Talent Acciquisition","q":"On average, how long does it take from first interview to offer?","t":"Open Ended","r":"","e":"It will take max 1 to 2 days. The timeline can vary depending on panelist availability and the speed of feedback submission."},{"s":"Talent Acciquisition","q":"In your view, what factors explain why some panels achieve higher offer conversions?","t":"Open Ended","r":"","e":"Several factors: panelist experience and expertise, clarity in evaluating candidate fit, consistency in feedback, the role\u2019s demand level, and candidate quality for that skill set."},{"s":"Talent Acciquisition","q":"How do recruiters generally perceive panel evaluations?","t":"Open Ended","r":"","e":"Recruiters do notice differences in panel evaluations. Some panels tend to be more rigorous due to higher expectations, while others appear more lenient, often reflecting individual panelist standards."},{"s":"Talent Acciquisition","q":"Do we have any trends or data showing interview-to-offer ratios by panel?","t":"Acceptance","r":"No","e":"At present, we don\u2019t have structured data on interview-to-offer ratios by panel, nor has this been analyzed in depth so far"},{"s":"Talent Acciquisition","q":"What portion of candidates interviewed move to offer stage?","t":"Open Ended","r":"","e":"40% are moved to offer stage but lost few (10 candidates - past 4 months) awaiting for client slots"},{"s":"Talent Acciquisition","q":"On average, how long does it take from first interview to offer?","t":"Open Ended","r":"","e":"On an average it takes minimum 2 weeks and gets extended"},{"s":"Talent Acciquisition","q":"What portion of candidates progressed recently?","t":"Open Ended","r":"","e":"Out of 10 candidates we share, 7 candidates get selected and 2-3 candidates get rejected"},{"s":"Talent Acciquisition","q":"On average, how long does the process take?","t":"Open Ended","r":"","e":"Initially, the process used to take over 4 weeks. Currently it\u2019s mostly around 2 weeks, unless there are exceptions due to candidate or client delays."},{"s":"Talent Acciquisition","q":"What portion of candidates move ahead?","t":"Open Ended","r":"","e":"around 30-40% are moved to offer stage but have lost candidates due to delay in client interview"}]};
+
+let currentCat = '';
+let currentFilter = 'all';
+
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+function showCat(id, el) {
+  document.querySelectorAll('.cat-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('cat-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+function openModal(cat, filter) {
+  currentCat = cat;
+  currentFilter = filter;
+  document.getElementById('modal-title').textContent = cat;
+  const data = EVIDENCE[cat] || [];
+  const types = [...new Set(data.map(d => d.t))];
+  const filtersEl = document.getElementById('modal-filters');
+  filtersEl.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'filter-btn' + (filter === 'all' ? ' active' : '');
+  allBtn.textContent = 'All (' + data.length + ')';
+  allBtn.onclick = () => applyFilter('all');
+  filtersEl.appendChild(allBtn);
+  const stakeholders = [...new Set(data.map(d => d.s))];
+  stakeholders.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.textContent = s + ' (' + data.filter(d => d.s === s).length + ')';
+    btn.onclick = () => applyFilter(s);
+    filtersEl.appendChild(btn);
+  });
+  types.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn' + (filter === t ? ' active' : '');
+    btn.textContent = t + ' (' + data.filter(d => d.t === t).length + ')';
+    btn.onclick = () => applyFilter(t);
+    filtersEl.appendChild(btn);
+  });
+  renderEvidence(cat, filter);
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('modal-sub').textContent = data.length + ' evidence entries · click a filter to narrow down';
+}
+
+function applyFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.remove('active');
+    if (b.textContent.startsWith(f === 'all' ? 'All' : f)) b.classList.add('active');
+  });
+  renderEvidence(currentCat, f);
+}
+
+function renderEvidence(cat, filter) {
+  const data = EVIDENCE[cat] || [];
+  const filtered = filter === 'all' ? data : data.filter(d => d.t === filter || d.s === filter);
+  const body = document.getElementById('modal-body');
+  if (filtered.length === 0) {
+    body.innerHTML = '<div class="ev-empty">No evidence for this filter.</div>';
+    return;
+  }
+  const stakeholderColors = {
+    'Panelists': 'badge-p',
+    'Talent Acciquisition': 'badge-ta',
+    'Management': 'badge-m',
+    'Human Capital': 'badge-hc'
+  };
+  body.innerHTML = filtered.map(ev => {
+    const respClass = ev.r === 'Yes' || ev.r === 'Effective' || ev.r === 'Very Effective' ? 'ev-resp-yes' :
+      ev.r === 'No' || ev.r === 'Ineffective' || ev.r === 'Below Expectations' ? 'ev-resp-no' : 'ev-resp-neutral';
+    const respBadge = ev.r ? `<span class="ev-resp ${respClass}">${ev.r}</span>` : '';
+    return `<div class="ev-card">
+      <div class="ev-meta">
+        <span class="badge ${stakeholderColors[ev.s] || 'badge-m'}">${ev.s}</span>
+        <span class="ev-type">${ev.t}</span>
+        ${respBadge}
+      </div>
+      <div class="ev-q">${ev.q}</div>
+      <div class="ev-text">"${ev.e}"</div>
+    </div>`;
+  }).join('');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
